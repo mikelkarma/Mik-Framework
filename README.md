@@ -15,6 +15,7 @@ This will open the Mik-Framework console, where you can interact with the availa
 
 2.  Configure the host and port:
 ```mik-revshell> set host 0.0.0.0```
+
 ```mik-revshell> set port 4545```
 
 4. Run the server:
